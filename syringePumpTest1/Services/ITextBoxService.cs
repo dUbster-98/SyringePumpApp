@@ -8,31 +8,31 @@ namespace SyringePumpTest1.Services
 {
     public interface ITextBoxService
     {
-        string TextBoxContents { get; set; }
+        string TextBoxContext { get; set; }
         string InputString {  get; set; }
 
-        void AddText(string context, string text);
-        void ChangeText(ref string context, string tet);
-        void RemoveText(ref string context);
+        void AddText(string text);
+        void ChangeText(string context, string tet);
+        void RemoveText();
 
         public class TextBoxService : ITextBoxService
         {
-            public string TextBoxContents { get; set; } = "";
+            public string TextBoxContext { get; set; } = "";
             public string InputString { get; set; } = "";
 
-            public void AddText(string context, string text) 
+            public void AddText(string text) 
             {
-                context += text; 
+                TextBoxContext += text;                
             }
 
-            public void ChangeText(ref string context, string text)
+            public void ChangeText(string context, string text)
             {
-                context = text;
+                TextBoxContext = text;
             }
 
-            public void RemoveText(ref string context)
+            public void RemoveText()
             {
-                
+                InputString = "";                
             }
         }
     }

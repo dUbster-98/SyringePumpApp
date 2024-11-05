@@ -21,6 +21,8 @@ namespace syringePumpTest1.ViewModels
         private readonly ISerialService _serialService;
         private readonly ITextBoxService _textBoxService;
 
+        SerialPort pumpSerial = new SerialPort();
+
         private string _serialLog;
         public string SerialLog
         {
@@ -37,14 +39,22 @@ namespace syringePumpTest1.ViewModels
                 OnPropertyChanged(nameof(InputString));
             }
         }
+
         public string TextBoxContext
         {
-            get => _textBoxService.TextBoxContents;
+            get => _textBoxService.TextBoxContext;
             set
             {
-                _textBoxService.TextBoxContents = value;
+                _textBoxService.TextBoxContext = value;
                 OnPropertyChanged(nameof(TextBoxContext));
             }
+        }
+
+        private int _movePara;
+        public int MovePara
+        {
+            get => _movePara;
+            set => SetProperty(ref _movePara, value);
         }
 
         private ICommand _openWindowCommand;
@@ -55,6 +65,7 @@ namespace syringePumpTest1.ViewModels
                 return _openWindowCommand ?? (_openWindowCommand = new RelayCommand(OpenWindow));
             }
         }
+
         private ICommand _reconnectCommand;
         public ICommand ReconnectCommand
         {
@@ -63,12 +74,22 @@ namespace syringePumpTest1.ViewModels
                 return _reconnectCommand ?? (_reconnectCommand = new RelayCommand(SerialReconnect));
             }
         }
+
         private ICommand _keyDownCommand;
         public ICommand KeyDownCommand
         {
             get
             {
                 return _keyDownCommand ?? (_keyDownCommand = new RelayCommand(EnterKeyDown));
+            }
+        }
+
+        private ICommand _moveCommand;
+        public ICommand MoveCommand
+        {
+            get
+            {
+                return _moveCommand ?? (_moveCommand = new RelayCommand(PumpMove));
             }
         }
 
@@ -88,11 +109,30 @@ namespace syringePumpTest1.ViewModels
             try
             {
                 _serialService.SendData(_serialService.PumpSerial, InputString);
-                _textBoxService.RemoveText(InputString);
+                TextBoxAddText(">>" + InputString);
+
+                Task.Run(() => SerialReadAsync());
             }
             catch (Exception ex)
             {
-                _textBoxService.AddText(TextBoxContext, ex.Message);
+                TextBoxAddText(ex.Message);
+            }
+            finally
+            {
+                RemoveText();
+            }
+        }
+        
+        private void PumpMove()
+        {
+            try
+            {
+                _serialService.SendData(_serialService.PumpSerial, $"/1A{MovePara.ToString()}R");
+                Task.Run(() => SerialReadAsync());
+            }
+            catch (Exception ex)
+            {
+                TextBoxAddText(ex.Message);
             }
         }
 
@@ -120,23 +160,27 @@ namespace syringePumpTest1.ViewModels
             try
             {
                 _serialService.OpenConnection(_serialService.PumpSerial, _serialService.serialSet.PumpSerialPort, _serialService.serialSet.PumpBoudRate);
+                TextBoxAddText("Pump Ready");
             }
             catch (Exception ex) 
             {
                 TextBoxAddText(ex.Message);
             }
-
-            TextBoxAddText("Pump Ready");
         }
 
         public void TextBoxAddText(string text)
         {
-            _textBoxService.AddText(TextBoxContext, text + "\r\n");
+            _textBoxService.AddText(text);
             OnPropertyChanged(nameof(TextBoxContext));
+        }
+        public void RemoveText()
+        {
+            _textBoxService.RemoveText();
+            OnPropertyChanged(nameof(InputString));
         }
 
         static TaskCompletionSource<bool>? dataReceivedTaskCompletion;
-        public async Task<bool> Fct_SerialReadAsync()
+        public async Task<bool> SerialReadAsync()
         {
             dataReceivedTaskCompletion = new TaskCompletionSource<bool>();
             _serialService.PumpSerial.DataReceived += DataReceivedHandler;
@@ -150,7 +194,7 @@ namespace syringePumpTest1.ViewModels
 
             if (dataReceivedTaskCompletion.Task.IsCompleted)
             {
-                _textBoxService.AddText(TextBoxContext, data);
+                TextBoxAddText("<<<" + data);
                 return true;
             }
             else

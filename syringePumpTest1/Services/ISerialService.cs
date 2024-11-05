@@ -40,10 +40,10 @@ namespace SyringePumpTest1.Service
                     {
                         serialPort.Open();
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         serialPort.Close();
-                        throw new Exception("SerialPort Open Fail");
+                        throw new Exception($"{ex.Message}\r\nSerialPort Open Fail");
                     }
                 }
             }
@@ -56,12 +56,12 @@ namespace SyringePumpTest1.Service
                     {
                         serialPort.Open();
                     }
-                    serialPort.Write(data);
+                    serialPort.Write(data + "\r");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     serialPort.Close();
-                    throw new Exception(serialPort.PortName + "SerialPort Write Fail");
+                    throw new Exception($"{ex.Message}\r\n{serialPort.PortName} SerialPort Write Fail");
                 }
             }
         }
