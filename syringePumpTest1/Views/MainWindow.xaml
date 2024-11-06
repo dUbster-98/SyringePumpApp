@@ -4,12 +4,34 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:syringePumpTest1"
+        xmlns:behaviors="clr-namespace:SyringePumpTest1.Behaviors"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
         Title="Syringe Pump Test" Height="720" Width="1080"
         Background="#F5F5F5"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Rectangle Width="15" Height="60" Fill="SkyBlue"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
+        <i:Interaction.Triggers>
+            <i:EventTrigger EventName="Loaded">
+                <i:InvokeCommandAction Command="{Binding WindowLoadedCommand}"/>
+            </i:EventTrigger>
+        </i:Interaction.Triggers>
+
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -71,8 +93,9 @@
 
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="2*"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="6*"/>
+                    <RowDefinition Height="170"/>
+                    <RowDefinition Height="3*"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,20,0,0">
@@ -84,31 +107,68 @@
 
                     <Grid Grid.Column="0" HorizontalAlignment="Right">
                         <StackPanel>
-                            <Button Content="Move" Command="{Binding MoveCommand}"/>
-                            <Button Content="Down"/>
-                            <Button Content="Up"/>
-                            <Button Content="button1"/>
-                            <Button Content="Execute"/>
+                            <Button Content="Move" Command="{Binding MoveCommand}" CommandParameter="A"/>
+                            <Button Content="Down" Command="{Binding MoveCommand}" CommandParameter="P"/>
+                            <Button Content="Up" Command="{Binding MoveCommand}" CommandParameter="D"/>
+                            <Button Content="Speed" Command="{Binding SetSpeedCommand }"/>
                         </StackPanel>                        
                     </Grid>
                     <Grid Grid.Column="1">
                         <StackPanel>
                             <Slider Value="{Binding MovePara, Mode=TwoWay}" Maximum="6000"/>
-                            <Slider/>
-                            <Slider/>
-                            <Slider/>
+                            <Slider Value="{Binding DownPara, Mode=TwoWay}" Maximum="{Binding LowerMargin}"/>
+                            <Slider Value="{Binding UpPara, Mode=TwoWay}" Maximum="{Binding UpperMargin}"/>
+                            <Slider Value="{Binding SpeedPara, Mode=TwoWay}" Maximum="40"/>
                         </StackPanel>
                     </Grid>
                     <Grid Grid.Column="2" HorizontalAlignment="Left">
                         <StackPanel>
-                            <TextBox Text="{Binding MovePara, StringFormat={}{0:}}"/>
-                            <TextBox Text="0"/>
-                            <TextBox Text="0"/>
-                            <TextBox Text="0"/>
+                            <TextBox Text="{Binding MovePara, StringFormat={}{0:}}" IsReadOnly="True"/>
+                            <TextBox Text="{Binding DownPara, StringFormat={}{0:}}" IsReadOnly="True"/>
+                            <TextBox Text="{Binding UpPara, StringFormat={}{0:}}" IsReadOnly="True"/>
+                            <TextBox Text="{Binding SpeedPara, StringFormat={}{0:}}" IsReadOnly="True"/>
                         </StackPanel>
                     </Grid>
                 </Grid>
-                <Grid Grid.Row="1" Margin="0">
+
+                <Grid Grid.Row="1">
+                    <Grid.Resources>
+                        <Style TargetType="Rectangle">
+                            <Setter Property="StrokeThickness" Value="2"/>
+                            <Setter Property="Stroke" Value="Black"/>
+                            <Setter Property="RadiusX" Value="3"/>
+                            <Setter Property="RadiusY" Value="3"/>
+                            <Setter Property="Margin" Value="0.5"/>
+                        </Style>
+                        <Style TargetType="Label">
+                            <Setter Property="FontSize" Value="15"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </Style>
+                    </Grid.Resources>                    
+
+                    <Label Content="2" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Label Content="1" VerticalAlignment="Center"/>
+
+                        <Grid>
+                            <Ellipse Width="120" Height="120" 
+                                     Stroke="Black" StrokeThickness="2" Fill="White"/>
+                            <CheckBox Style="{StaticResource CheckBoxStyle}"/>
+                            <CheckBox Style="{StaticResource CheckBoxStyle}"/>
+                            <!--
+                            <Rectangle Width="15" Height="60" VerticalAlignment="Bottom" Fill="Transparent"/>
+                            <Rectangle Width="15" Height="60" VerticalAlignment="Top" Fill="Transparent"/>
+                            <Rectangle Width="60" Height="15" HorizontalAlignment="Left" Fill="Transparent"/>
+                            <Rectangle Width="60" Height="15" HorizontalAlignment="Right" Fill="Transparent"/>
+                            -->
+                        </Grid>
+                        
+                        <Label Content="3" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Label Content="C" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                </Grid>
+                
+                <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="3*"/>
                         <ColumnDefinition Width="7*"/>
@@ -137,18 +197,27 @@
 
                 <Grid Grid.Row="1" VerticalAlignment="Bottom" Margin="0">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Serial Log" HorizontalAlignment="Left" Margin="70,0,0,0"/>
+                        <TextBlock Text="Serial Log" HorizontalAlignment="Left" Margin="70,0,0,5"/>
                         <Button Content="Reconnect" Margin="30,0,0,0"
                                 Command="{Binding ReconnectCommand}"/>
+                        <CheckBox Content="Connected" Margin="20 10 0 0" IsEnabled="False"
+                                  IsChecked="{Binding IsConnected}"/>
                     </StackPanel>
                 </Grid>
                 <Grid Grid.Row="2" Margin="0">
-                    <TextBox       
+                    <TextBox
+                        VerticalScrollBarVisibility="Auto"
                         Height="500"
                         Width="400"
                         Margin="0,0,0,0"
                         Text="{Binding TextBoxContext}"
-                        TextAlignment="Justify"/>
+                        TextAlignment="Justify">
+
+                        <b:Interaction.Behaviors>
+                            <behaviors:ScrollBehavior/>
+                        </b:Interaction.Behaviors>
+
+                    </TextBox>
                 </Grid>
             </Grid>
             
