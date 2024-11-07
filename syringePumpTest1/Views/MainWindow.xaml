@@ -13,15 +13,91 @@
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
-        <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
+        <Style TargetType="{x:Type Rectangle}" x:Key="RectStyle">
+            <Setter Property="StrokeThickness" Value="2"/>
+            <Setter Property="Stroke" Value="Black"/>
+            <Setter Property="RadiusX" Value="3"/>
+            <Setter Property="RadiusY" Value="3"/>
+            <Setter Property="Margin" Value="0.5"/>
+            <Setter Property="Fill" 
+                    Value="{Binding RelativeSource=
+                           {RelativeSource Mode=FindAncestor, AncestorLevel=1, 
+                            AncestorType={x:Type CheckBox}},Path=IsChecked,
+                            Converter={StaticResource BoolToColorConverter}}"/>
+        </Style>
+
+        <Style TargetType="{x:Type Path}" x:Key="InArrow">
+            <Setter Property="Fill" Value="DarkBlue"/>
+            <Setter Property="Data" Value="M22,4V2H2V4H11V18.17L5.5,12.67L4.08,14.08L12,22L19.92,14.08L18.5,12.67L13,18.17V4H22Z"/>
+        </Style>
+        <Style TargetType="{x:Type Path}" x:Key="OutArrow">
+            <Setter Property="Fill" Value="DarkOrange"/>
+            <Setter Property="Data" Value="M2,20V22H22V20H13V5.83L18.5,11.33L19.92,9.92L12,2L4.08,9.92L5.5,11.33L11,5.83V20H2Z"/>
+        </Style>
+
+        <Style TargetType="{x:Type Path}" x:Key="Cross">
+            <Setter Property="Fill" Value="SkyBlue"/>
+            <Setter Property="Data" Value="M18 15H15V18H10V15H7V10H10V7H15V10H18"/>
+        </Style>
+
+        <Style x:Key="verticalCb" TargetType="{x:Type CheckBox}">
+            <Setter Property="Height" Value="68"/>
+            <Setter Property="Width" Value="20"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="CheckBox">
-                        <Rectangle Width="15" Height="60" Fill="SkyBlue"/>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <Grid>
+                            <Rectangle Style="{StaticResource RectStyle}"/>
+                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="HorizontalCb" TargetType="{x:Type CheckBox}">
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Width" Value="68"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid>
+                            <Rectangle Style="{StaticResource RectStyle}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="InputRB" TargetType="{x:Type RadioButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Grid>
+                            <Path Style="{StaticResource InArrow}"/>
+                            <TextBlock Text="Input" HorizontalAlignment="Left"
+                                       FontSize="12" Margin="30,0,0,0"
+                                       FontWeight="Bold"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="OutputRB" TargetType="{x:Type RadioButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Grid>
+                            <Path Style="{StaticResource OutArrow}"/>
+                            <TextBlock Text="Output" HorizontalAlignment="Left"
+                                       FontSize="12" Margin="29,3,0,0"
+                                       FontWeight="Bold"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
     <Grid>
@@ -31,7 +107,7 @@
             </i:EventTrigger>
         </i:Interaction.Triggers>
 
-        
+
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -84,8 +160,8 @@
                     <Setter Property="Margin" Value="0,26,0,26"/>
                 </Style>
             </Grid.Resources>
-            
-            
+
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -94,8 +170,8 @@
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="6*"/>
-                    <RowDefinition Height="170"/>
-                    <RowDefinition Height="3*"/>
+                    <RowDefinition Height="200"/>
+                    <RowDefinition Height="2*"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,20,0,0">
@@ -111,7 +187,7 @@
                             <Button Content="Down" Command="{Binding MoveCommand}" CommandParameter="P"/>
                             <Button Content="Up" Command="{Binding MoveCommand}" CommandParameter="D"/>
                             <Button Content="Speed" Command="{Binding SetSpeedCommand }"/>
-                        </StackPanel>                        
+                        </StackPanel>
                     </Grid>
                     <Grid Grid.Column="1">
                         <StackPanel>
@@ -132,42 +208,70 @@
                 </Grid>
 
                 <Grid Grid.Row="1">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+
                     <Grid.Resources>
-                        <Style TargetType="Rectangle">
-                            <Setter Property="StrokeThickness" Value="2"/>
-                            <Setter Property="Stroke" Value="Black"/>
-                            <Setter Property="RadiusX" Value="3"/>
-                            <Setter Property="RadiusY" Value="3"/>
-                            <Setter Property="Margin" Value="0.5"/>
-                        </Style>
                         <Style TargetType="Label">
                             <Setter Property="FontSize" Value="15"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                         </Style>
-                    </Grid.Resources>                    
+                    </Grid.Resources>
 
-                    <Label Content="2" HorizontalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Label Content="1" VerticalAlignment="Center"/>
+                    <Grid HorizontalAlignment="Right">
+                        <Label Content="2" HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Label Content="1" VerticalAlignment="Center"/>
 
-                        <Grid>
-                            <Ellipse Width="120" Height="120" 
-                                     Stroke="Black" StrokeThickness="2" Fill="White"/>
-                            <CheckBox Style="{StaticResource CheckBoxStyle}"/>
-                            <CheckBox Style="{StaticResource CheckBoxStyle}"/>
-                            <!--
-                            <Rectangle Width="15" Height="60" VerticalAlignment="Bottom" Fill="Transparent"/>
-                            <Rectangle Width="15" Height="60" VerticalAlignment="Top" Fill="Transparent"/>
-                            <Rectangle Width="60" Height="15" HorizontalAlignment="Left" Fill="Transparent"/>
-                            <Rectangle Width="60" Height="15" HorizontalAlignment="Right" Fill="Transparent"/>
-                            -->
-                        </Grid>
-                        
-                        <Label Content="3" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <Label Content="C" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                            <Grid>
+                                <Ellipse Width="140" Height="140" 
+                                     Stroke="Black" StrokeThickness="2" Fill="Transparent"/>
+
+                                <CheckBox Style="{StaticResource verticalCb}"
+                                      VerticalAlignment="Top"
+                                      Command="{Binding Pump2CheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding Pump2IsChecked, Mode=TwoWay}"/>
+
+                                <CheckBox Style="{StaticResource verticalCb}"
+                                      VerticalAlignment="Bottom"
+                                      Command="{Binding PumpCCheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding PumpCIsChecked, Mode=TwoWay}"/>
+
+                                <CheckBox Style="{StaticResource HorizontalCb}"
+                                      HorizontalAlignment="Left"
+                                      Command="{Binding Pump1CheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding Pump1IsChecked, Mode=TwoWay}"/>
+
+                                <CheckBox Style="{StaticResource HorizontalCb}"
+                                      HorizontalAlignment="Right"
+                                      Command="{Binding Pump3CheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding Pump3IsChecked, Mode=TwoWay}"/>
+
+                                <Path Style="{StaticResource Cross}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" Height="33" Stretch="Fill" Width="33"/>
+                            </Grid>
+                            <Label Content="3" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Label Content="C" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                    </Grid>
+
+                    <Grid Grid.Column="1" VerticalAlignment="Bottom">
+                        <StackPanel>
+                            <RadioButton Style="{StaticResource InputRB}" Margin="5"/>
+                            <RadioButton Style="{StaticResource OutputRB}" Margin="5"/>
+                        </StackPanel>
+                    </Grid>
+
                 </Grid>
-                
+
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="3*"/>
@@ -183,9 +287,9 @@
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Enter" Command="{Binding KeyDownCommand}"/>
                             </TextBox.InputBindings>
-                        </TextBox>                        
+                        </TextBox>
                     </Grid>
-                </Grid>                
+                </Grid>
             </Grid>
 
             <Grid Grid.Column="1">
@@ -220,8 +324,8 @@
                     </TextBox>
                 </Grid>
             </Grid>
-            
-            
+
+
         </Grid>
     </Grid>
 </Window>

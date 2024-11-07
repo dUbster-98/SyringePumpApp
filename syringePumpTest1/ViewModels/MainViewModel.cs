@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Windows;
+using System.Collections;
 
 namespace syringePumpTest1.ViewModels
 {
@@ -27,6 +28,11 @@ namespace syringePumpTest1.ViewModels
         private readonly ITextBoxService _textBoxService;
 
         SerialPort pumpSerial = new SerialPort();
+
+        bool[] CheckBoxState = new bool[4];
+        List<int> CheckedBoxIndex = new List<int>();
+
+        Dictionary<bool,int> dic = new Dictionary<bool,int>();
 
         private string _serialLog;
         public string SerialLog
@@ -104,6 +110,34 @@ namespace syringePumpTest1.ViewModels
             set => SetProperty(ref _isConnected, value);
         }
 
+        private bool _pump2IsChecked;
+        public bool Pump2IsChecked
+        {
+            get => _pump2IsChecked;
+            set => SetProperty(ref _pump2IsChecked, value);
+        }
+
+        private bool _pumpCIsChecked;
+        public bool PumpCIsChecked
+        {
+            get => _pumpCIsChecked;
+            set => SetProperty(ref _pumpCIsChecked, value);
+        }
+
+        private bool _pump1IsChecked;
+        public bool Pump1IsChecked
+        {
+            get => _pump1IsChecked;
+            set => SetProperty(ref _pump1IsChecked, value);
+        }
+
+        private bool _pump3IsChecked;
+        public bool Pump3IsChecked
+        {
+            get => _pump3IsChecked;
+            set => SetProperty(ref _pump3IsChecked, value);
+        }
+
         private ICommand _openWindowCommand;
         public ICommand OpenWindowCommand
         {
@@ -138,6 +172,27 @@ namespace syringePumpTest1.ViewModels
         public ICommand SetSpeedCommand
         {
             get => _setSpeedCommand ?? (_setSpeedCommand = new AsyncRelayCommand(SetSpeed));
+        }
+
+        private ICommand _pump2CheckedCommand;
+        public ICommand Pump2CheckedCommand
+        {
+            get => _pump2CheckedCommand ?? (_pump2CheckedCommand = new RelayCommand<object>(Pump2Checked));
+        }
+        private ICommand _pumpCCheckedCommand;
+        public ICommand PumpCCheckedCommand
+        {
+            get => _pumpCCheckedCommand ?? (_pumpCCheckedCommand = new RelayCommand<object>(PumpCChecked));
+        }
+        private ICommand _pump1CheckedCommand;
+        public ICommand Pump1CheckedCommand
+        {
+            get => _pump1CheckedCommand ?? (_pump1CheckedCommand = new RelayCommand<object>(Pump1Checked));
+        }
+        private ICommand _pump3CheckedCommand;
+        public ICommand Pump3CheckedCommand
+        {
+            get => _pump3CheckedCommand ?? (_pump3CheckedCommand = new RelayCommand<object>(Pump3Checked));
         }
 
         private void OpenWindow()
@@ -227,6 +282,126 @@ namespace syringePumpTest1.ViewModels
             {
                 TextBoxAddText(ex.Message);
             }
+        }
+
+        private void Pump2Checked(object isChecked)
+        {
+            if (isChecked is bool value)
+            {
+                Pump2IsChecked = value;
+               
+                    CheckedBoxCount(2);
+                
+            }
+        }
+        private void PumpCChecked(object isChecked)
+        {
+            if (isChecked is bool value)
+            {
+                PumpCIsChecked = value;
+     
+                    CheckedBoxCount(0);
+                
+            }
+        }
+        private void Pump1Checked(object isChecked)
+        {
+            if (isChecked is bool value)
+            {
+                Pump1IsChecked = value;
+
+                    CheckedBoxCount(1);
+                
+            }
+        }
+        private void Pump3Checked(object isChecked)
+        {
+            if (isChecked is bool value)
+            {
+                Pump3IsChecked = value;
+
+                    CheckedBoxCount(3);
+                
+            }
+        }
+
+        private void CheckedBoxCount(int index)
+        {
+            if (CheckBoxState[index])
+            {                
+                if (CheckedBoxIndex[CheckedBoxIndex.Count - 1] == index)
+                {
+                    CheckBoxState[index] = false;
+                    CheckedBoxIndex.RemoveAt(CheckedBoxIndex.Count - 1);
+                }
+                return;
+            }
+
+            CheckBoxState[index] = true;
+            CheckedBoxIndex.Add(index);
+
+            if (CheckedBoxIndex.Count == 2)
+            {
+                ValvePosSetting();
+            }
+            else if (CheckedBoxIndex.Count > 2)
+            {             
+                int oldindex = CheckedBoxIndex[0];
+                CheckBoxState[oldindex] = false;
+                CheckedBoxIndex.RemoveAt(0);
+
+                switch (oldindex)
+                {
+                    case 0:
+                        PumpCIsChecked = false;
+                        break;
+                    case 1:
+                        Pump1IsChecked = false;
+                        break;
+                    case 2:
+                        Pump2IsChecked = false;
+                        break;
+                    case 3:
+                        Pump3IsChecked = false;
+                        break;
+                }
+
+                ValvePosSetting();
+            }
+        }
+
+        private void ValvePosSetting()
+        {
+            string pumpCommand = "";
+            if (PumpCIsChecked && Pump1IsChecked)
+            {
+                pumpCommand = "/1I";
+            }
+            else if (PumpCIsChecked && Pump2IsChecked)
+            {
+                pumpCommand = "/10";
+            }
+            else if (PumpCIsChecked && Pump3IsChecked)
+            {
+                
+            }
+            else if (Pump1IsChecked && Pump2IsChecked)
+            {
+                
+            }
+            else if (Pump1IsChecked && Pump3IsChecked)
+            {
+                
+            }
+            else if (Pump2IsChecked && Pump3IsChecked)
+            {
+
+            }
+                
+
+            //_serialService.SendData(_serialService.PumpSerial, $"/1{dir}{para}R");
+            //TextBoxAddText($">>>/1{dir}{para}R");
+            //await SerialReadAsync();
         }
 
         public MainViewModel(IIniSetService iniSetService, ISerialService serialService, ITextBoxService textBoxService)
