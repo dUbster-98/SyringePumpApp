@@ -393,11 +393,11 @@ namespace syringePumpTest1.ViewModels
             }
             else if (Pump1IsChecked && Pump2IsChecked)
             {
-                TextBoxAddText("Can't be connected");
+                pumpCommand = "/1<B>R";
             }
             else if (Pump1IsChecked && Pump3IsChecked)
             {
-                pumpCommand = "/1<B>R";
+                TextBoxAddText("Can't be connected");
             }
             else if (Pump2IsChecked && Pump3IsChecked)
             {

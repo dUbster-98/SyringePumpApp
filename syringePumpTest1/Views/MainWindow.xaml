@@ -13,6 +13,18 @@
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
+        <LinearGradientBrush x:Key="InRbOver" StartPoint="0.5 0" EndPoint="0.5 1">
+            <GradientStop Color="#cbc4ff" Offset="0"/>
+            <GradientStop Color="#9182ff" Offset="0.5"/>
+            <GradientStop Color="#553efa" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="OutRbOver" StartPoint="0.5 0" EndPoint="0.5 1">
+            <GradientStop Color="#ffdab5" Offset="0"/>
+            <GradientStop Color="#fcbc7c" Offset="0.5"/>
+            <GradientStop Color="#ff9429" Offset="1"/>
+        </LinearGradientBrush>
+
         <Style TargetType="{x:Type Rectangle}" x:Key="RectStyle">
             <Setter Property="StrokeThickness" Value="2"/>
             <Setter Property="Stroke" Value="Black"/>
@@ -77,12 +89,19 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Grid>
-                            <Path Style="{StaticResource InArrow}"/>
-                            <TextBlock Text="Input" HorizontalAlignment="Left"
+                            <Path x:Name="path" Style="{StaticResource InArrow}"/>
+                            <TextBlock x:Name="tb" Text="Input" HorizontalAlignment="Left"
                                        FontSize="15" Margin="30,0,0,0"
                                        FontWeight="Bold"
+                                       Width="60"
                                        Foreground="{Binding Path=InputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="path" Property="Fill" Value="{StaticResource InRbOver}"/>
+                                <Setter TargetName="tb" Property="Foreground" Value="{StaticResource InRbOver}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -95,12 +114,51 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Grid>
-                            <Path Style="{StaticResource OutArrow}"/>
-                            <TextBlock Text="Output" HorizontalAlignment="Left"
+                            <Path x:Name="path" Style="{StaticResource OutArrow}"/>
+                            <TextBlock x:Name="tb" Text="Output" HorizontalAlignment="Left"
                                        FontSize="15" Margin="29,3,0,0"
                                        FontWeight="Bold"
+                                       Width="60"
                                        Foreground="{Binding Path=OutputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="path" Property="Fill" Value="{StaticResource OutRbOver}"/>
+                                <Setter TargetName="tb" Property="Foreground" Value="{StaticResource OutRbOver}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ShowDirection" TargetType="{x:Type Control}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Control}">
+                        <Path Data="M7.03 9.97H11.03V18.89L13.04 18.92V9.97H17.03L12.03 4.97Z"
+                              x:Name="Direction" Fill="Black">
+                            <Path.RenderTransform>
+                                <TranslateTransform x:Name="DirectionTransform" X="0" Y="0"/>
+                            </Path.RenderTransform>
+                        </Path>
+
+                        <ControlTemplate.Resources>
+                            <Storyboard x:Key="SlideIn">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
+                                                               Storyboard.TargetProperty="Y">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="-0"/>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="60"/>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                            <Storyboard x:Key="SlideOut">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
+                                                               Storyboard.TargetProperty="Y">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="60"/>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="0"/>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </ControlTemplate.Resources>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -265,6 +323,12 @@
                                 <Path Style="{StaticResource Cross}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" Height="33" Stretch="Fill" Width="33"/>
+
+                                <Grid.Triggers>
+                                    <EventTrigger RoutedEvent="MouseEnter">
+                                        <!--여기까지했슴-->
+                                    </EventTrigger>
+                                </Grid.Triggers>
                             </Grid>
                             <Label Content="3" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -336,8 +400,6 @@
                     </TextBox>
                 </Grid>
             </Grid>
-
-
         </Grid>
     </Grid>
 </Window>

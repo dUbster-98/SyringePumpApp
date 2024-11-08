@@ -19,9 +19,9 @@ namespace SyringePumpTest1.Converters
                 switch (status)
                 {
                     case Status.Input:
-                        return Brushes.BlueViolet;
+                        return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1e00ff"));
                     case Status.Output:
-                        return Brushes.Orange;
+                        return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#ff8000"));
                     case Status.Font:
                         return Brushes.Black;
                     case Status.Inactive:
