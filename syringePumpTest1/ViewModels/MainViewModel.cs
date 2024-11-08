@@ -18,6 +18,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Windows;
 using System.Collections;
+using SyringePumpTest1.Enums;
 
 namespace syringePumpTest1.ViewModels
 {
@@ -34,13 +35,14 @@ namespace syringePumpTest1.ViewModels
 
         Dictionary<bool,int> dic = new Dictionary<bool,int>();
 
+        private object _serialLock = new object();
+
         private string _serialLog;
         public string SerialLog
         {
             get => _serialLog;
             set => SetProperty(ref _serialLog, value);
         }
-
         public string InputString
         {
             get => _textBoxService.InputString;
@@ -50,7 +52,6 @@ namespace syringePumpTest1.ViewModels
                 OnPropertyChanged(nameof(InputString));
             }
         }
-
         public string TextBoxContext
         {
             get => _textBoxService.TextBoxContext;
@@ -60,82 +61,83 @@ namespace syringePumpTest1.ViewModels
                 OnPropertyChanged(nameof(TextBoxContext));
             }
         }
-
         private int _movePara;
         public int MovePara
         {
             get => _movePara;
             set => SetProperty(ref _movePara, value);
         }
-
         private int _downPara;
         public int DownPara
         {
             get => _downPara;
             set => SetProperty(ref _downPara, value);
         }
-
         private int _upPara;
         public int UpPara
         {
             get => _upPara;
             set => SetProperty(ref _upPara, value);
         }
-
         private int _lowerMargin;
         public int LowerMargin
         {
             get => _lowerMargin;
             set => SetProperty(ref _lowerMargin, value);
         }
-
         private int _upperMargin;
         public int UpperMargin
         {
             get => _upperMargin;
             set => SetProperty(ref _upperMargin, value);
         }
-
         private int _speedPara;
         public int SpeedPara
         {
             get => _speedPara;
             set => SetProperty(ref _speedPara, value);
         }
-
         private bool _isConnected;
         public bool IsConnected
         {
             get => _isConnected;
             set => SetProperty(ref _isConnected, value);
         }
-
         private bool _pump2IsChecked;
         public bool Pump2IsChecked
         {
             get => _pump2IsChecked;
             set => SetProperty(ref _pump2IsChecked, value);
         }
-
         private bool _pumpCIsChecked;
         public bool PumpCIsChecked
         {
             get => _pumpCIsChecked;
             set => SetProperty(ref _pumpCIsChecked, value);
         }
-
         private bool _pump1IsChecked;
         public bool Pump1IsChecked
         {
             get => _pump1IsChecked;
             set => SetProperty(ref _pump1IsChecked, value);
         }
-
         private bool _pump3IsChecked;
         public bool Pump3IsChecked
         {
             get => _pump3IsChecked;
             set => SetProperty(ref _pump3IsChecked, value);
+        }
+        private Status _inputStatus;
+        public Status InputStatus
+        {
+            get => _inputStatus;
+            set => SetProperty(ref _inputStatus, value);
+        }
+        private Status _outputStatus;
+        public Status OutputStatus
+        {
+            get => _outputStatus;
+            set => SetProperty(ref _outputStatus, value);
         }
 
         private ICommand _openWindowCommand;
@@ -143,37 +145,31 @@ namespace syringePumpTest1.ViewModels
         {
             get => _openWindowCommand ?? (_openWindowCommand = new RelayCommand(OpenWindow));
         }
-
         private ICommand _reconnectCommand;
         public ICommand ReconnectCommand
         {
             get => _reconnectCommand ?? (_reconnectCommand = new RelayCommand(SerialReconnect));
         }
-
         private ICommand _keyDownCommand;
         public ICommand KeyDownCommand
         {
             get => _keyDownCommand ?? (_keyDownCommand = new RelayCommand(EnterKeyDown));
         }
-
         private ICommand _moveCommand;
         public ICommand MoveCommand
         {
             get => _moveCommand ?? (_moveCommand = new AsyncRelayCommand<object>(PumpMove));            
         }
-
         private ICommand _windowLoadedCommand;
         public ICommand WindowLoadedCommand
         {
             get => _windowLoadedCommand ?? (_windowLoadedCommand = new RelayCommand(Window_Loaded));
         }
-
         private ICommand _setSpeedCommand;
         public ICommand SetSpeedCommand
         {
-            get => _setSpeedCommand ?? (_setSpeedCommand = new AsyncRelayCommand(SetSpeed));
+            get => _setSpeedCommand ?? (_setSpeedCommand = new RelayCommand(SetSpeed));
         }
-
         private ICommand _pump2CheckedCommand;
         public ICommand Pump2CheckedCommand
         {
@@ -193,6 +189,16 @@ namespace syringePumpTest1.ViewModels
         public ICommand Pump3CheckedCommand
         {
             get => _pump3CheckedCommand ?? (_pump3CheckedCommand = new RelayCommand<object>(Pump3Checked));
+        }
+        private ICommand _inputBtnCommand;
+        public ICommand InputBtnCommand
+        {
+            get => _inputBtnCommand ?? (_inputBtnCommand = new RelayCommand<object>(InputBtnPush));
+        }
+        private ICommand _outputBtnCommand;
+        public ICommand OutputBtnCommand
+        {
+            get => _outputBtnCommand ?? (_outputBtnCommand = new RelayCommand<object>(OutputBtnPush));
         }
 
         private void OpenWindow()
@@ -270,13 +276,13 @@ namespace syringePumpTest1.ViewModels
             LowerMargin = 6000 - MovePara;
         }
 
-        private async Task SetSpeed()
+        private void SetSpeed()
         {
             try
             {
                 _serialService.SendData(_serialService.PumpSerial, $"/1S{SpeedPara}R");
                 TextBoxAddText($">>>/1S{SpeedPara}R");
-                await SerialReadAsync();
+                Task.Run(()=> SerialReadAsync());
             }
             catch (Exception ex)
             {
@@ -289,9 +295,7 @@ namespace syringePumpTest1.ViewModels
             if (isChecked is bool value)
             {
                 Pump2IsChecked = value;
-               
-                    CheckedBoxCount(2);
-                
+                CheckedBoxCount(2);
             }
         }
         private void PumpCChecked(object isChecked)
@@ -299,9 +303,7 @@ namespace syringePumpTest1.ViewModels
             if (isChecked is bool value)
             {
                 PumpCIsChecked = value;
-     
-                    CheckedBoxCount(0);
-                
+                CheckedBoxCount(0);
             }
         }
         private void Pump1Checked(object isChecked)
@@ -309,9 +311,7 @@ namespace syringePumpTest1.ViewModels
             if (isChecked is bool value)
             {
                 Pump1IsChecked = value;
-
-                    CheckedBoxCount(1);
-                
+                CheckedBoxCount(1);
             }
         }
         private void Pump3Checked(object isChecked)
@@ -319,16 +319,14 @@ namespace syringePumpTest1.ViewModels
             if (isChecked is bool value)
             {
                 Pump3IsChecked = value;
-
-                    CheckedBoxCount(3);
-                
+                CheckedBoxCount(3);
             }
         }
 
         private void CheckedBoxCount(int index)
         {
             if (CheckBoxState[index])
-            {                
+            {
                 if (CheckedBoxIndex[CheckedBoxIndex.Count - 1] == index)
                 {
                     CheckBoxState[index] = false;
@@ -342,10 +340,10 @@ namespace syringePumpTest1.ViewModels
 
             if (CheckedBoxIndex.Count == 2)
             {
-                ValvePosSetting();
+                Task.Run(() => ValvePosSetting());
             }
             else if (CheckedBoxIndex.Count > 2)
-            {             
+            {
                 int oldindex = CheckedBoxIndex[0];
                 CheckBoxState[oldindex] = false;
                 CheckedBoxIndex.RemoveAt(0);
@@ -365,43 +363,65 @@ namespace syringePumpTest1.ViewModels
                         Pump3IsChecked = false;
                         break;
                 }
-
-                ValvePosSetting();
+                Task.Run(()=> ValvePosSetting());                
             }
         }
 
-        private void ValvePosSetting()
+        private async Task ValvePosSetting()
         {
             string pumpCommand = "";
+            string ino = "";
+            if (InputStatus == Status.Input)
+            {
+                ino = "I";
+            }
+            else
+            {
+                ino = "O";
+            }
             if (PumpCIsChecked && Pump1IsChecked)
             {
-                pumpCommand = "/1I";
+                pumpCommand = $"/1{ino}<1>R";
             }
             else if (PumpCIsChecked && Pump2IsChecked)
             {
-                pumpCommand = "/10";
+                pumpCommand = $"/1{ino}<2>R";
             }
             else if (PumpCIsChecked && Pump3IsChecked)
             {
-                
+                pumpCommand = $"/1{ino}<3>R";
             }
             else if (Pump1IsChecked && Pump2IsChecked)
             {
-                
+                TextBoxAddText("Can't be connected");
             }
             else if (Pump1IsChecked && Pump3IsChecked)
             {
-                
+                pumpCommand = "/1<B>R";
             }
             else if (Pump2IsChecked && Pump3IsChecked)
             {
+                pumpCommand = "/1<E>R";
+            }       
+            _serialService.SendData(_serialService.PumpSerial, pumpCommand);
+            TextBoxAddText($">>>{pumpCommand}");
 
+            await SerialReadAsync();
+        }
+
+        private void InputBtnPush(object state)
+        {
+            if(state is string value)
+            {
+                InputStatus = Status.Input;
+                OutputStatus = Status.Inactive;
             }
-                
+        }
 
-            //_serialService.SendData(_serialService.PumpSerial, $"/1{dir}{para}R");
-            //TextBoxAddText($">>>/1{dir}{para}R");
-            //await SerialReadAsync();
+        private void OutputBtnPush(object state)
+        {
+            OutputStatus = Status.Output;
+            InputStatus = Status.Inactive;
         }
 
         public MainViewModel(IIniSetService iniSetService, ISerialService serialService, ITextBoxService textBoxService)
@@ -491,7 +511,7 @@ namespace syringePumpTest1.ViewModels
             dataReceivedTaskCompletion = new TaskCompletionSource<bool>();
             _serialService.PumpSerial.DataReceived += DataReceivedHandler;
 
-            Task timeoutTask = Task.Delay(3500);
+            Task timeoutTask = Task.Delay(3000);
             await Task.WhenAny(dataReceivedTaskCompletion.Task, timeoutTask);
             await Task.Delay(100);
 

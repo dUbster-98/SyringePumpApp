@@ -27,11 +27,13 @@
         </Style>
 
         <Style TargetType="{x:Type Path}" x:Key="InArrow">
-            <Setter Property="Fill" Value="DarkBlue"/>
+            <Setter Property="Fill" 
+                    Value="{Binding Path=InputStatus, Converter={StaticResource EnumToColorConverter}}"/>
             <Setter Property="Data" Value="M22,4V2H2V4H11V18.17L5.5,12.67L4.08,14.08L12,22L19.92,14.08L18.5,12.67L13,18.17V4H22Z"/>
         </Style>
         <Style TargetType="{x:Type Path}" x:Key="OutArrow">
-            <Setter Property="Fill" Value="DarkOrange"/>
+            <Setter Property="Fill" 
+                    Value="{Binding Path=OutputStatus, Converter={StaticResource EnumToColorConverter}}"/>
             <Setter Property="Data" Value="M2,20V22H22V20H13V5.83L18.5,11.33L19.92,9.92L12,2L4.08,9.92L5.5,11.33L11,5.83V20H2Z"/>
         </Style>
 
@@ -59,7 +61,7 @@
             <Setter Property="Width" Value="68"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <ControlTemplate TargetType="{x:Type ToggleButton}"> <!--여기서 타겟 타입이 CheckBox 하위 속성인 ToggleButton으로 바뀌기 때문에 FindAncester를 해줘야 하는것-->
                         <Grid>
                             <Rectangle Style="{StaticResource RectStyle}"/>
                         </Grid>
@@ -69,14 +71,17 @@
         </Style>
 
         <Style x:Key="InputRB" TargetType="{x:Type RadioButton}">
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Grid>
                             <Path Style="{StaticResource InArrow}"/>
                             <TextBlock Text="Input" HorizontalAlignment="Left"
-                                       FontSize="12" Margin="30,0,0,0"
-                                       FontWeight="Bold"/>
+                                       FontSize="15" Margin="30,0,0,0"
+                                       FontWeight="Bold"
+                                       Foreground="{Binding Path=InputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
@@ -84,14 +89,17 @@
         </Style>
 
         <Style x:Key="OutputRB" TargetType="{x:Type RadioButton}">
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Grid>
                             <Path Style="{StaticResource OutArrow}"/>
                             <TextBlock Text="Output" HorizontalAlignment="Left"
-                                       FontSize="12" Margin="29,3,0,0"
-                                       FontWeight="Bold"/>
+                                       FontSize="15" Margin="29,3,0,0"
+                                       FontWeight="Bold"
+                                       Foreground="{Binding Path=OutputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
@@ -265,8 +273,12 @@
 
                     <Grid Grid.Column="1" VerticalAlignment="Bottom">
                         <StackPanel>
-                            <RadioButton Style="{StaticResource InputRB}" Margin="5"/>
-                            <RadioButton Style="{StaticResource OutputRB}" Margin="5"/>
+                            <RadioButton Style="{StaticResource InputRB}" Margin="5"
+                                         Command="{Binding InputBtnCommand}"
+                                         CommandParameter="in"/>
+                            <RadioButton Style="{StaticResource OutputRB}" Margin="5"
+                                         Command="{Binding OutputBtnCommand}"
+                                         CommandParameter="out"/>
                         </StackPanel>
                     </Grid>
 
