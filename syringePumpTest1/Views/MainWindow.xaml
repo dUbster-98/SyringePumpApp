@@ -8,7 +8,7 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
-        Title="Syringe Pump Test" Height="720" Width="1080"
+        Title="Syringe Pump Test" Height="650" Width="1200"
         Background="#F5F5F5"
         WindowStartupLocation="CenterScreen">
 
@@ -55,7 +55,7 @@
         </Style>
 
         <Style x:Key="verticalCb" TargetType="{x:Type CheckBox}">
-            <Setter Property="Height" Value="68"/>
+            <Setter Property="Height" Value="75"/>
             <Setter Property="Width" Value="20"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -70,7 +70,7 @@
 
         <Style x:Key="HorizontalCb" TargetType="{x:Type CheckBox}">
             <Setter Property="Height" Value="20"/>
-            <Setter Property="Width" Value="68"/>
+            <Setter Property="Width" Value="75"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ToggleButton}"> <!--여기서 타겟 타입이 CheckBox 하위 속성인 ToggleButton으로 바뀌기 때문에 FindAncester를 해줘야 하는것-->
@@ -91,7 +91,7 @@
                         <Grid>
                             <Path x:Name="path" Style="{StaticResource InArrow}"/>
                             <TextBlock x:Name="tb" Text="Input" HorizontalAlignment="Left"
-                                       FontSize="15" Margin="30,0,0,0"
+                                       FontSize="20" Margin="30,0,0,0"
                                        FontWeight="Bold"
                                        Width="60"
                                        Foreground="{Binding Path=InputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
@@ -116,13 +116,13 @@
                         <Grid>
                             <Path x:Name="path" Style="{StaticResource OutArrow}"/>
                             <TextBlock x:Name="tb" Text="Output" HorizontalAlignment="Left"
-                                       FontSize="15" Margin="29,3,0,0"
+                                       FontSize="20" Margin="30,0,0,0"
                                        FontWeight="Bold"
-                                       Width="60"
+                                       Width="80"
                                        Foreground="{Binding Path=OutputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger Property="IsMouseOver" Value="True">                               
                                 <Setter TargetName="path" Property="Fill" Value="{StaticResource OutRbOver}"/>
                                 <Setter TargetName="tb" Property="Foreground" Value="{StaticResource OutRbOver}"/>
                             </Trigger>
@@ -132,33 +132,66 @@
             </Setter>
         </Style>
 
-        <Style x:Key="ShowDirection" TargetType="{x:Type Control}">
+        <Style x:Key="ArrowStyle" TargetType="{x:Type Path}">
+            <Setter Property="Data" Value="M7.03 9.97H11.03V18.89L13.04 18.92V9.97H17.03L12.03 4.97Z"/>
+            <Setter Property="Fill" Value="Black"/>
+            <Setter Property="Stretch" Value="fill"/>
+            <Setter Property="Width" Value="15"/>
+            <Setter Property="Height" Value="20"/>
+        </Style>
+
+        <Storyboard x:Key="DirectionUp" Completed="DirectionUp_Completed">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
+                                           Storyboard.TargetProperty="Y">
+                <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="-0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="60"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+
+        <Storyboard x:Key="DirectionDown">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
+                                           Storyboard.TargetProperty="Y">
+                <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="60"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+
+        <Style TargetType="{x:Type Thumb}" x:Key="SliderThumb">
+            <Setter Property="Background" Value="DeepSkyBlue"/>
+            <Setter Property="Width" Value="55"/>
+            <Setter Property="Height" Value="15"/>
+        </Style>
+        
+        <Style TargetType="{x:Type Slider}" x:Key="PumpGauge">
+            <Setter Property="IsMoveToPointEnabled" Value="True"/>
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="6000"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Orientation" Value="Vertical"/>
+            <Setter Property="SelectionStart" Value="{Binding MovePara}"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="IsMoveToPointEnabled" Value="False"/>
+            <Setter Property="Value" Value="60"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Control}">
-                        <Path Data="M7.03 9.97H11.03V18.89L13.04 18.92V9.97H17.03L12.03 4.97Z"
-                              x:Name="Direction" Fill="Black">
-                            <Path.RenderTransform>
-                                <TranslateTransform x:Name="DirectionTransform" X="0" Y="0"/>
-                            </Path.RenderTransform>
-                        </Path>
+                    <ControlTemplate TargetType="{x:Type Slider}">
+                        <Grid Background="Transparent">
+                            <Rectangle Width="50"
+                                       Fill="SkyBlue"
+                                       Height="{Binding Path=CurrPos, Converter={StaticResource SliderValueToWidthConverter}}">
+                            </Rectangle>
+                            <Track Name="PART_Track">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SliderThumb}"/>
+                                </Track.Thumb>
+                            </Track>
+                            <TextBlock Text="{Binding CurrPos}" Foreground="Black"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="22"
+                                       FontWeight="Bold"/>
+                        </Grid>
 
-                        <ControlTemplate.Resources>
-                            <Storyboard x:Key="SlideIn">
-                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
-                                                               Storyboard.TargetProperty="Y">
-                                    <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="-0"/>
-                                    <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="60"/>
-                                </DoubleAnimationUsingKeyFrames>
-                            </Storyboard>
-                            <Storyboard x:Key="SlideOut">
-                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
-                                                               Storyboard.TargetProperty="Y">
-                                    <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="60"/>
-                                    <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="0"/>
-                                </DoubleAnimationUsingKeyFrames>
-                            </Storyboard>
-                        </ControlTemplate.Resources>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -225,19 +258,25 @@
                 <Style TargetType="Slider">
                     <Setter Property="Margin" Value="0,26,0,26"/>
                 </Style>
+
+                <Style TargetType="Label">
+                    <Setter Property="FontSize" Value="20"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Style>
+                
             </Grid.Resources>
 
 
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="6*"/>
-                    <RowDefinition Height="200"/>
-                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="4*"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,20,0,0">
@@ -249,14 +288,21 @@
 
                     <Grid Grid.Column="0" HorizontalAlignment="Right">
                         <StackPanel>
+                            <Button Content="Reconnect" Margin="0,0,0,20" Command="{Binding ReconnectCommand}"/>
+
                             <Button Content="Move" Command="{Binding MoveCommand}" CommandParameter="A"/>
                             <Button Content="Down" Command="{Binding MoveCommand}" CommandParameter="P"/>
                             <Button Content="Up" Command="{Binding MoveCommand}" CommandParameter="D"/>
                             <Button Content="Speed" Command="{Binding SetSpeedCommand }"/>
+                            
+                            
                         </StackPanel>
                     </Grid>
                     <Grid Grid.Column="1">
                         <StackPanel>
+
+                            <CheckBox Content="Connected" Margin="20 10 0 25" IsEnabled="False"
+                                      IsChecked="{Binding IsConnected}"/>
                             <Slider Value="{Binding MovePara, Mode=TwoWay}" Maximum="6000"/>
                             <Slider Value="{Binding DownPara, Mode=TwoWay}" Maximum="{Binding LowerMargin}"/>
                             <Slider Value="{Binding UpPara, Mode=TwoWay}" Maximum="{Binding UpperMargin}"/>
@@ -264,79 +310,18 @@
                         </StackPanel>
                     </Grid>
                     <Grid Grid.Column="2" HorizontalAlignment="Left">
-                        <StackPanel>
-                            <TextBox Text="{Binding MovePara, StringFormat={}{0:}}" IsReadOnly="True"/>
-                            <TextBox Text="{Binding DownPara, StringFormat={}{0:}}" IsReadOnly="True"/>
-                            <TextBox Text="{Binding UpPara, StringFormat={}{0:}}" IsReadOnly="True"/>
-                            <TextBox Text="{Binding SpeedPara, StringFormat={}{0:}}" IsReadOnly="True"/>
+                        <StackPanel Margin="0,50,0,0">
+                            <TextBox Text="{Binding MovePara, StringFormat={}{0:}}"/>
+                            <TextBox Text="{Binding DownPara, StringFormat={}{0:}}"/>
+                            <TextBox Text="{Binding UpPara, StringFormat={}{0:}}"/>
+                            <TextBox Text="{Binding SpeedPara, StringFormat={}{0:}}"/>
                         </StackPanel>
                     </Grid>
                 </Grid>
 
                 <Grid Grid.Row="1">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.Resources>
-                        <Style TargetType="Label">
-                            <Setter Property="FontSize" Value="15"/>
-                            <Setter Property="FontWeight" Value="Bold"/>
-                        </Style>
-                    </Grid.Resources>
-
-                    <Grid HorizontalAlignment="Right">
-                        <Label Content="2" HorizontalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Label Content="1" VerticalAlignment="Center"/>
-
-                            <Grid>
-                                <Ellipse Width="140" Height="140" 
-                                     Stroke="Black" StrokeThickness="2" Fill="Transparent"/>
-
-                                <CheckBox Style="{StaticResource verticalCb}"
-                                      VerticalAlignment="Top"
-                                      Command="{Binding Pump2CheckedCommand}"
-                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
-                                      IsChecked="{Binding Pump2IsChecked, Mode=TwoWay}"/>
-
-                                <CheckBox Style="{StaticResource verticalCb}"
-                                      VerticalAlignment="Bottom"
-                                      Command="{Binding PumpCCheckedCommand}"
-                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
-                                      IsChecked="{Binding PumpCIsChecked, Mode=TwoWay}"/>
-
-                                <CheckBox Style="{StaticResource HorizontalCb}"
-                                      HorizontalAlignment="Left"
-                                      Command="{Binding Pump1CheckedCommand}"
-                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
-                                      IsChecked="{Binding Pump1IsChecked, Mode=TwoWay}"/>
-
-                                <CheckBox Style="{StaticResource HorizontalCb}"
-                                      HorizontalAlignment="Right"
-                                      Command="{Binding Pump3CheckedCommand}"
-                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
-                                      IsChecked="{Binding Pump3IsChecked, Mode=TwoWay}"/>
-
-                                <Path Style="{StaticResource Cross}"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center" Height="33" Stretch="Fill" Width="33"/>
-
-                                <Grid.Triggers>
-                                    <EventTrigger RoutedEvent="MouseEnter">
-                                        <!--여기까지했슴-->
-                                    </EventTrigger>
-                                </Grid.Triggers>
-                            </Grid>
-                            <Label Content="3" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <Label Content="C" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
-                    </Grid>
-
-                    <Grid Grid.Column="1" VerticalAlignment="Bottom">
-                        <StackPanel>
+                    <Grid Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
                             <RadioButton Style="{StaticResource InputRB}" Margin="5"
                                          Command="{Binding InputBtnCommand}"
                                          CommandParameter="in"/>
@@ -346,50 +331,124 @@
                         </StackPanel>
                     </Grid>
 
+
                 </Grid>
 
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
                         <ColumnDefinition Width="7*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0">
-                        <TextBlock Text="Input String" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <Grid Grid.Column="1">
-                        <TextBox 
-                            Height="30" Width="350" Margin="0,0,0,0"
-                            Text="{Binding InputString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                            <TextBox.InputBindings>
-                                <KeyBinding Key="Enter" Command="{Binding KeyDownCommand}"/>
-                            </TextBox.InputBindings>
-                        </TextBox>
-                    </Grid>
+                    
                 </Grid>
             </Grid>
 
             <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="240"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                
+                <Grid HorizontalAlignment="Center" Margin="0,10,0,0">
+                    <Label Content="2" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Label Content="1" VerticalAlignment="Center"/>
+
+                        <Grid>
+                            <Ellipse Width="160" Height="160" 
+                                     Stroke="Black" StrokeThickness="2" Fill="Transparent"/>
+
+                            <CheckBox Style="{StaticResource verticalCb}"
+                                      VerticalAlignment="Top"
+                                      Command="{Binding Pump2CheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding Pump2IsChecked, Mode=TwoWay}"/>
+
+                            <CheckBox Style="{StaticResource verticalCb}"
+                                      VerticalAlignment="Bottom"
+                                      Command="{Binding PumpCCheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding PumpCIsChecked, Mode=OneWay}"
+                                      IsEnabled="False"/>
+
+                            <CheckBox Style="{StaticResource HorizontalCb}"
+                                      HorizontalAlignment="Left"
+                                      Command="{Binding Pump1CheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding Pump1IsChecked, Mode=TwoWay}"/>
+
+                            <CheckBox Style="{StaticResource HorizontalCb}"
+                                      HorizontalAlignment="Right"
+                                      Command="{Binding Pump3CheckedCommand}"
+                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                      IsChecked="{Binding Pump3IsChecked, Mode=TwoWay}"/>
+
+                            <Path Style="{StaticResource Cross}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" Height="33" Stretch="Fill" Width="33"/>
+
+                            <Path x:Name="DirectionArrow">
+                                <Path.Style>
+                                    <Style TargetType="{x:Type Path}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding InputStatus}" Value="True">
+                                                <!-- 요까지해슴 -->
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                                <Path.RenderTransform>
+                                    <TranslateTransform x:Name="DirectionTransform" X="0" Y="0"/>
+                                </Path.RenderTransform>
+                            </Path>
+
+                            <Grid.Triggers>
+                                <EventTrigger RoutedEvent="MouseEnter">
+                                    <EventTrigger.Actions>
+                                        <BeginStoryboard Storyboard="{StaticResource DirectionDown}"/>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+                            </Grid.Triggers>
+                        </Grid>
+                        <Label Content="3" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Label Content="C" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Slider Style="{StaticResource PumpGauge}"/>
+
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="10*"/>
                 </Grid.RowDefinitions>
 
+                <Grid Grid.Row="0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="370">
+                        <TextBlock Text="Input String" Margin="10,0,0,0"/>
+                        <TextBox Height="30" Width="220" Margin="10,0,0,0"
+                                 Text="{Binding InputString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding KeyDownCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>                    
+                </Grid>
+
                 <Grid Grid.Row="1" VerticalAlignment="Bottom" Margin="0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Serial Log" HorizontalAlignment="Left" Margin="70,0,0,5"/>
-                        <Button Content="Reconnect" Margin="30,0,0,0"
-                                Command="{Binding ReconnectCommand}"/>
-                        <CheckBox Content="Connected" Margin="20 10 0 0" IsEnabled="False"
-                                  IsChecked="{Binding IsConnected}"/>
-                    </StackPanel>
+                    <TextBlock Text="Serial Log" HorizontalAlignment="Left" Margin="60,0,0,5"/>
                 </Grid>
                 <Grid Grid.Row="2" Margin="0">
                     <TextBox
                         VerticalScrollBarVisibility="Auto"
-                        Height="500"
-                        Width="400"
+                        Height="460"
+                        Width="350"
                         Margin="0,0,0,0"
+                        VerticalAlignment="Top"
                         Text="{Binding TextBoxContext}"
                         TextAlignment="Justify">
 

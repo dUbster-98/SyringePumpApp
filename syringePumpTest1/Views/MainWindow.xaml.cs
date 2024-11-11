@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -23,6 +24,11 @@ namespace syringePumpTest1
         {
             InitializeComponent();
             this.DataContext = App.Current.Services.GetService(typeof(MainViewModel));
+        }
+
+        private void DirectionUp_Completed(object sender, EventArgs e)
+        {
+
         }
     }
 }

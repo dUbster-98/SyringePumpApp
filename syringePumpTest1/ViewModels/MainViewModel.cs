@@ -61,6 +61,12 @@ namespace syringePumpTest1.ViewModels
                 OnPropertyChanged(nameof(TextBoxContext));
             }
         }
+        private int _currPos;
+        public int CurrPos
+        {
+            get => _currPos;
+            set => SetProperty(ref _currPos, value);
+        }
         private int _movePara;
         public int MovePara
         {
@@ -255,9 +261,6 @@ namespace syringePumpTest1.ViewModels
                 _serialService.SendData(_serialService.PumpSerial, $"/1{dir}{para}R");
                 TextBoxAddText($">>>/1{dir}{para}R");
                 await SerialReadAsync();
-
-                await ParsingPosition();
-
             }
             catch (Exception ex)
             {
@@ -267,13 +270,51 @@ namespace syringePumpTest1.ViewModels
 
         private async Task ParsingPosition()
         {
-            _serialService.SendData(_serialService.PumpSerial, $"/1?");
-            string res = await SerialReadAsync();
-            string resp = Regex.Replace(res, @"\p{C}+", "").Trim();
-            MovePara = int.Parse(resp.Substring(4));
+            try
+            {
+                int i = 0;
+                while (true)
+                {
+                    _serialService.SendData(_serialService.PumpSerial, $"/1?");
 
-            UpperMargin = MovePara;
-            LowerMargin = 6000 - MovePara;
+                    var dataReceivedTaskCompletion = new TaskCompletionSource<bool>();
+                    SerialDataReceivedEventHandler handler = (sender, e) => dataReceivedTaskCompletion.TrySetResult(true);
+                    _serialService.PumpSerial.DataReceived += handler;
+
+                    Task timeoutTask = Task.Delay(1000);
+                    var completedTask = await Task.WhenAny(dataReceivedTaskCompletion.Task, timeoutTask);
+                    await Task.Delay(100);
+
+                    if (completedTask == dataReceivedTaskCompletion.Task)
+                    {
+                        string data = _serialService.PumpSerial.ReadExisting();
+
+                        _serialService.PumpSerial.DataReceived -= handler;
+
+                        if (data.Length < 4)                        
+                            continue;
+                        
+                        string resp = Regex.Replace(data, @"\p{C}+", "").Trim();
+                        bool result = int.TryParse(resp.Substring(4), out i);
+
+                        if (result)
+                        {
+                            CurrPos = i;
+                            UpperMargin = CurrPos;
+                            LowerMargin = 6000 - CurrPos;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TextBoxAddText(ex.ToString());
+            }
+        }
+
+        private async Task ReadStringTask()
+        {
+
         }
 
         private void SetSpeed()
@@ -338,11 +379,11 @@ namespace syringePumpTest1.ViewModels
             CheckBoxState[index] = true;
             CheckedBoxIndex.Add(index);
 
-            if (CheckedBoxIndex.Count == 2)
+            if (CheckedBoxIndex.Count == 1)
             {
                 Task.Run(() => ValvePosSetting());
             }
-            else if (CheckedBoxIndex.Count > 2)
+            else if (CheckedBoxIndex.Count > 1)
             {
                 int oldindex = CheckedBoxIndex[0];
                 CheckBoxState[oldindex] = false;
@@ -381,28 +422,21 @@ namespace syringePumpTest1.ViewModels
             }
             if (PumpCIsChecked && Pump1IsChecked)
             {
-                pumpCommand = $"/1{ino}<1>R";
+                pumpCommand = $"/1{ino}1R";
             }
             else if (PumpCIsChecked && Pump2IsChecked)
             {
-                pumpCommand = $"/1{ino}<2>R";
+                pumpCommand = $"/1{ino}2R";
             }
             else if (PumpCIsChecked && Pump3IsChecked)
             {
-                pumpCommand = $"/1{ino}<3>R";
+                pumpCommand = $"/1{ino}3R";
             }
-            else if (Pump1IsChecked && Pump2IsChecked)
-            {
-                pumpCommand = "/1<B>R";
-            }
-            else if (Pump1IsChecked && Pump3IsChecked)
+            else 
             {
                 TextBoxAddText("Can't be connected");
             }
-            else if (Pump2IsChecked && Pump3IsChecked)
-            {
-                pumpCommand = "/1<E>R";
-            }       
+            
             _serialService.SendData(_serialService.PumpSerial, pumpCommand);
             TextBoxAddText($">>>{pumpCommand}");
 
@@ -420,8 +454,11 @@ namespace syringePumpTest1.ViewModels
 
         private void OutputBtnPush(object state)
         {
-            OutputStatus = Status.Output;
-            InputStatus = Status.Inactive;
+            if (state is string value)
+            {
+                OutputStatus = Status.Output;
+                InputStatus = Status.Inactive;
+            }
         }
 
         public MainViewModel(IIniSetService iniSetService, ISerialService serialService, ITextBoxService textBoxService)
@@ -432,6 +469,9 @@ namespace syringePumpTest1.ViewModels
 
             InputString = "";
             SerialLog = "";
+
+            PumpCIsChecked = true;
+            InputStatus = Status.Input;
 
             InitializeSerialPort();
 
@@ -531,6 +571,27 @@ namespace syringePumpTest1.ViewModels
         private static void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             dataReceivedTaskCompletion.TrySetResult(true);
+        }
+
+
+        static TaskCompletionSource<bool>? loopDataReceivedTaskCompletion;
+        public async Task<string> LooPSerialReadAsync()
+        {
+            dataReceivedTaskCompletion = new TaskCompletionSource<bool>();
+            _serialService.PumpSerial.DataReceived += LoopDataReceivedHandler;
+
+            Task timeoutTask = Task.Delay(1000);
+            await Task.WhenAny(dataReceivedTaskCompletion.Task, timeoutTask);
+            await Task.Delay(100);
+
+            string data = _serialService.PumpSerial.ReadExisting();
+            _serialService.PumpSerial.DataReceived -= LoopDataReceivedHandler;
+
+            return data;
+        }
+        private static void LoopDataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
+        {
+            loopDataReceivedTaskCompletion.TrySetResult(true);
         }
     }
 }

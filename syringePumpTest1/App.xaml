@@ -9,6 +9,7 @@
             <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:EnumToColorConverter x:Key="EnumToColorConverter"/>
+            <converters:SliderValueToWidthConverter x:Key="SliderValueToWidthConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
