@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows;
+using SyringePumpTest1.Enums;
 
 namespace SyringePumpTest1.Converters
 {
@@ -22,6 +23,17 @@ namespace SyringePumpTest1.Converters
                 if (boolValue)
                 {
                     return TrueValue;
+                }
+                else
+                {
+                    return FalseValue;
+                }
+            }
+            else if (value is Status status)
+            {
+                if (status == Status.Input)
+                {
+                    return TrueValue;             
                 }
                 else
                 {

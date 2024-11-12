@@ -30,7 +30,7 @@ namespace SyringePumpTest1.Converters
                         return Brushes.Gray;
                 }
             }
-            return Brushes.Gray;
+            return null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -122,7 +122,7 @@
                                        Foreground="{Binding Path=OutputStatus , Converter={StaticResource EnumToColorConverter}, Mode=TwoWay}"/>
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">                               
+                            <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="path" Property="Fill" Value="{StaticResource OutRbOver}"/>
                                 <Setter TargetName="tb" Property="Foreground" Value="{StaticResource OutRbOver}"/>
                             </Trigger>
@@ -132,27 +132,35 @@
             </Setter>
         </Style>
 
-        <Style x:Key="ArrowStyle" TargetType="{x:Type Path}">
-            <Setter Property="Data" Value="M7.03 9.97H11.03V18.89L13.04 18.92V9.97H17.03L12.03 4.97Z"/>
-            <Setter Property="Fill" Value="Black"/>
+        <Style x:Key="OutArrowStyle" TargetType="{x:Type Path}">
+            <Setter Property="Data" Value="M36 28L44 28L32 14L20 28L28 28L28 48L36 48"/>
+            <Setter Property="Fill" Value="DarkBlue"/>
             <Setter Property="Stretch" Value="fill"/>
             <Setter Property="Width" Value="15"/>
             <Setter Property="Height" Value="20"/>
         </Style>
 
-        <Storyboard x:Key="DirectionUp" Completed="DirectionUp_Completed">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
+        <Style x:Key="InArrowStyle" TargetType="{x:Type Path}">
+            <Setter Property="Data" Value="M44 36 L36 36L36 16L28 16L28 36L20 36L32 50"/>
+            <Setter Property="Fill" Value="DarkBlue"/>
+            <Setter Property="Stretch" Value="fill"/>
+            <Setter Property="Width" Value="15"/>
+            <Setter Property="Height" Value="20"/>
+        </Style>
+
+        <Storyboard x:Key="DirectionUp" RepeatBehavior="Forever">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InDirectionTransform"
                                            Storyboard.TargetProperty="Y">
-                <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="-0"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="60"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0:1" Value="65"/>
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
 
-        <Storyboard x:Key="DirectionDown">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DirectionTransform"
+        <Storyboard x:Key="DirectionDown" RepeatBehavior="Forever">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="OutDirectionTransform"
                                            Storyboard.TargetProperty="Y">
-                <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="60"/>
-                <EasingDoubleKeyFrame KeyTime="0:0:0:3" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0:0" Value="65"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0:1" Value="0"/>
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
 
@@ -386,25 +394,39 @@
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center" Height="33" Stretch="Fill" Width="33"/>
 
-                            <Path x:Name="DirectionArrow">
-                                <Path.Style>
-                                    <Style TargetType="{x:Type Path}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding InputStatus}" Value="True">
-                                                <!-- 요까지해슴 -->
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
+                            <Path x:Name="InDirectionArrow" Style="{StaticResource InArrowStyle}"
+                                  Visibility="{Binding Path=InputStatus, Converter={StaticResource BoolToVisibilityConverter}}">                                
                                 <Path.RenderTransform>
-                                    <TranslateTransform x:Name="DirectionTransform" X="0" Y="0"/>
+                                    <TranslateTransform x:Name="InDirectionTransform" X="0" Y="0"/>
+                                </Path.RenderTransform>
+                            </Path>
+
+                            <Path x:Name="OutDirectionArrow" Style="{StaticResource OutArrowStyle}"
+                                  Visibility="{Binding Path=InputStatus, Converter={StaticResource BoolToVisibilityReverseConverter}}">
+                                <Path.RenderTransform>
+                                    <TranslateTransform x:Name="OutDirectionTransform" X="0" Y="0"/>
                                 </Path.RenderTransform>
                             </Path>
 
                             <Grid.Triggers>
                                 <EventTrigger RoutedEvent="MouseEnter">
                                     <EventTrigger.Actions>
-                                        <BeginStoryboard Storyboard="{StaticResource DirectionDown}"/>
+                                        <BeginStoryboard Storyboard="{StaticResource DirectionDown}"
+                                                         Name="DirectionDownStoryboard"/>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+                                <EventTrigger RoutedEvent="MouseEnter">
+                                    <EventTrigger.Actions>
+                                        <BeginStoryboard Storyboard="{StaticResource DirectionUp}"
+                                                         Name="DirectionUpStoryboard"/>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+
+                                <!-- 마우스를 치울 때 애니메이션 중지 -->
+                                <EventTrigger RoutedEvent="MouseLeave">
+                                    <EventTrigger.Actions>
+                                        <StopStoryboard BeginStoryboardName="DirectionDownStoryboard"/>
+                                        <StopStoryboard BeginStoryboardName="DirectionUpStoryboard"/>
                                     </EventTrigger.Actions>
                                 </EventTrigger>
                             </Grid.Triggers>
@@ -416,7 +438,6 @@
 
                 <Grid Grid.Row="1">
                     <Slider Style="{StaticResource PumpGauge}"/>
-
                 </Grid>
             </Grid>
 

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SyringePumpTest1.Service;
 using SyringePumpTest1.Views;
@@ -366,45 +366,52 @@ namespace syringePumpTest1.ViewModels
 
         private void CheckedBoxCount(int index)
         {
-            if (CheckBoxState[index])
+            try
             {
-                if (CheckedBoxIndex[CheckedBoxIndex.Count - 1] == index)
+                if (CheckBoxState[index])
                 {
-                    CheckBoxState[index] = false;
-                    CheckedBoxIndex.RemoveAt(CheckedBoxIndex.Count - 1);
+                    if (CheckedBoxIndex[CheckedBoxIndex.Count - 1] == index)
+                    {
+                        CheckBoxState[index] = false;
+                        CheckedBoxIndex.RemoveAt(CheckedBoxIndex.Count - 1);
+                    }
+                    return;
                 }
-                return;
-            }
 
-            CheckBoxState[index] = true;
-            CheckedBoxIndex.Add(index);
+                CheckBoxState[index] = true;
+                CheckedBoxIndex.Add(index);
 
-            if (CheckedBoxIndex.Count == 1)
-            {
-                Task.Run(() => ValvePosSetting());
-            }
-            else if (CheckedBoxIndex.Count > 1)
-            {
-                int oldindex = CheckedBoxIndex[0];
-                CheckBoxState[oldindex] = false;
-                CheckedBoxIndex.RemoveAt(0);
-
-                switch (oldindex)
+                if (CheckedBoxIndex.Count == 1)
                 {
-                    case 0:
-                        PumpCIsChecked = false;
-                        break;
-                    case 1:
-                        Pump1IsChecked = false;
-                        break;
-                    case 2:
-                        Pump2IsChecked = false;
-                        break;
-                    case 3:
-                        Pump3IsChecked = false;
-                        break;
+                    Task.Run(() => ValvePosSetting());
                 }
-                Task.Run(()=> ValvePosSetting());                
+                else if (CheckedBoxIndex.Count > 1)
+                {
+                    int oldindex = CheckedBoxIndex[0];
+                    CheckBoxState[oldindex] = false;
+                    CheckedBoxIndex.RemoveAt(0);
+
+                    switch (oldindex)
+                    {
+                        case 0:
+                            PumpCIsChecked = false;
+                            break;
+                        case 1:
+                            Pump1IsChecked = false;
+                            break;
+                        case 2:
+                            Pump2IsChecked = false;
+                            break;
+                        case 3:
+                            Pump3IsChecked = false;
+                            break;
+                    }
+                    Task.Run(() => ValvePosSetting());
+                }
+            }
+            catch (Exception ex)
+            {
+                TextBoxAddText(ex.ToString());
             }
         }
 
@@ -436,11 +443,18 @@ namespace syringePumpTest1.ViewModels
             {
                 TextBoxAddText("Can't be connected");
             }
-            
-            _serialService.SendData(_serialService.PumpSerial, pumpCommand);
-            TextBoxAddText($">>>{pumpCommand}");
 
-            await SerialReadAsync();
+            try
+            {
+                _serialService.SendData(_serialService.PumpSerial, pumpCommand);
+                TextBoxAddText($">>>{pumpCommand}");
+
+                await SerialReadAsync();
+            }
+            catch (Exception ex)
+            {
+                TextBoxAddText(ex.ToString());
+            }
         }
 
         private void InputBtnPush(object state)
