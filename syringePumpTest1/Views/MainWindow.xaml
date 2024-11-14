@@ -302,8 +302,6 @@
                             <Button Content="Down" Command="{Binding MoveCommand}" CommandParameter="P"/>
                             <Button Content="Up" Command="{Binding MoveCommand}" CommandParameter="D"/>
                             <Button Content="Speed" Command="{Binding SetSpeedCommand }"/>
-                            
-                            
                         </StackPanel>
                     </Grid>
                     <Grid Grid.Column="1">
@@ -315,6 +313,7 @@
                             <Slider Value="{Binding DownPara, Mode=TwoWay}" Maximum="{Binding LowerMargin}"/>
                             <Slider Value="{Binding UpPara, Mode=TwoWay}" Maximum="{Binding UpperMargin}"/>
                             <Slider Value="{Binding SpeedPara, Mode=TwoWay}" Maximum="40"/>
+                            <Button Content="Stop" Command="{Binding StopCommand}" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
                     <Grid Grid.Column="2" HorizontalAlignment="Left">

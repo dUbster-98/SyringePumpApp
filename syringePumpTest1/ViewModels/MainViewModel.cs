@@ -206,6 +206,11 @@ namespace syringePumpTest1.ViewModels
         {
             get => _outputBtnCommand ?? (_outputBtnCommand = new RelayCommand<object>(OutputBtnPush));
         }
+        private ICommand _stopCommand;
+        public ICommand StopCommand
+        {
+            get => _stopCommand ?? (_stopCommand = new AsyncRelayCommand(StopPump));
+        }
 
         private void OpenWindow()
         {
@@ -236,7 +241,15 @@ namespace syringePumpTest1.ViewModels
                 RemoveText();
             }
         }
-        
+
+        private async Task StopPump()
+        {
+            _serialService.SendData(_serialService.PumpSerial, $"/1FR");
+            TextBoxAddText($"/1FR");
+            await SerialReadAsync();
+        }
+
+
         private async Task PumpMove(object dir)
         {
             try
